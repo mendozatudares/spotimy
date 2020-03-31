@@ -1,3 +1,36 @@
+@font-face {
+	font-family: 'proxima_nova_rgregular';
+	src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot');
+	src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.woff') format('woff'),
+		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.ttf') format('truetype'),
+		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.svg#proxima_nova_rgregular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'proxima_nova_rgbold';
+	src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot');
+	src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.woff') format('woff'),
+		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.ttf') format('truetype'),
+		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.svg#proxima_nova_rgbold') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'adelle_rgregular';
+	src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot');
+	src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot?#iefix') format('embedded-opentype'),
+		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.woff') format('woff'),
+		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.ttf') format('truetype'),
+		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.svg#adelle_rgregular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+
 div, button {
   margin: 10px;
 }
@@ -24,7 +57,7 @@ h3 {
 }
 
 body {
-    font-family: 'proxima_nova_bold', sans-serif;
+    font-family: 'proxima_nova_rgregular', sans-serif;
     background: rgb(24, 24, 24);
     color: #fff;
     max-width: 1400px;
@@ -44,6 +77,7 @@ body {
   bottom: -10px;
   width: 200px;
   overflow-y: auto;
+  z-index: 999;
 }
 
 .main-section {
@@ -54,15 +88,7 @@ body {
 
 .main-section-container {
   position: relative;
-  top: 50px;
   padding-bottom: 100px;
-}
-
-.side-menu-container {
-  font-weight: 600;
-  padding: 20px;
-  color: rgb(179, 179, 179);
-  margin: 0;
 }
 
 ::-webkit-scrollbar {
@@ -81,14 +107,23 @@ body {
   background: #888;
 }
 
-.user-library-header {
-  font-weight: 300;
-  text-transform: uppercase;
-  font-family: 'proxima_nova_thin', sans-serif;
-  font-size: 11px;
+.side-menu-container {
+  font-weight: 600;
+  padding: 20px;
+  color: rgb(179, 179, 179);
   margin: 0;
-  padding: 0 0 5px 0;
-  letter-spacing: 1px;
+}
+
+.side-menu-container .active {
+  margin-left: -5px;
+  color: #fff;
+}
+
+.side-menu-container .active:before {
+	content: "";
+	border-left: 5px solid #1db954;
+	position: relative;
+	left: -15px;
 }
 
 .side-menu-item {
@@ -105,15 +140,14 @@ body {
   color: #fff;
 }
 
-.side-menu-container .active {
-	margin-left: -5px;
-}
-
-.side-menu-container .active:before {
-	content: "";
-	border-left: 5px solid #1db954;
-	position: relative;
-	left: -15px;
+.user-library-header {
+  font-weight: 300;
+  text-transform: uppercase;
+  font-family: 'proxima_nova_rgregular', sans-serif;
+  font-size: 11px;
+  margin: 0;
+  padding: 0 0 5px 0;
+  letter-spacing: 1px;
 }
 
 .user-playlist-container {
@@ -125,7 +159,7 @@ body {
 .user-playlist-header {
   font-weight: 300;
   text-transform: uppercase;
-  font-family: 'proxima_nova_thin', sans-serif;
+  font-family: 'proxima_nova_rgregular', sans-serif;
   font-size: 11px;
   margin: 0;
   padding: 0 0 5px 0;
@@ -148,22 +182,31 @@ body {
 }
 
 .user-playlist-container .active {
-	margin-left: -3px;
+  margin-left: -5px;
+  color: #fff;
 }
 
 .user-playlist-container .active:before {
 	content: "";
 	border-left: 5px solid #1db954;
 	position: relative;
-	left: -20px;
+	left: -15px;
 }
 
 .playlist-image {
+  height: 230px;
   width: 230px;
+  object-fit: cover;
+}
+
+.playlist-image-container {
+  width: 230px;
+  color: rgb(24, 24, 24);
 }
 
 .playlist-title-container {
   display: flex;
+  height: 260px;
 }
 
 .playlist-info-container {
@@ -173,19 +216,19 @@ body {
 }
 
 .created-by {
-  font-family: 'proxima_nova_thin', sans-serif;
+  font-family: 'proxima_nova_rgregular', sans-serif;
   font-size: 13px;
   color: #aaa;
   padding: 8px 0;
 }
 
 .lighter-text {
-  font-family: 'proxima_nova', sans-serif;
+  font-family: 'proxima_nova_rgregular', sans-serif;
   color: #fff;
 }
 
 .playlist-text {
-  font-family: 'proxima_nova_thin', sans-serif;
+  font-family: 'proxima_nova_rgregular', sans-serif;
   letter-spacing: 1px;
   font-size: 12px;
 }
@@ -214,11 +257,135 @@ body {
 
 .current-artist-info p {
 	text-transform: uppercase;
-	font-family: 'proxima_nova_thin', sans-serif;
+	font-family: 'proxima_nova_rgregular', sans-serif;
 	font-size: 13px;
 }
 
 .artist-button {
 	margin-top: 20px;
 	margin-left: 40px;
+}
+
+.section-title {
+  font-size: 34px;
+  font-weight: 800;
+  font-family: 'proxima_nova_rgbold', sans-serif;
+}
+
+.user-song-item {
+  list-style-type: none;
+  border-bottom: 1px solid #444;
+  display: flex;
+  line-height: 40px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-song-item:hover {
+  background: rgb(51, 51, 51);
+}
+
+.active.user-song-item {
+  color: #1db954;
+  background: rgb(51, 51, 51);
+}
+
+.add-song {
+	color: #fff;
+}
+
+.user-song-item:hover {
+  opacity: 1;
+}
+
+.song-title,
+.song-title-header {
+  width: 300px;
+}
+
+.song-album,
+.song-album-header {
+  width: 300px;
+}
+
+.song-artist,
+.song-artist-header {
+  width: 250px;
+}
+
+.song-added {
+  width: 80px;
+}
+
+.user-song-item.fa {
+  font-size: 30px;
+  position: relative;
+  top: 5px;
+  color: #ccc;
+  cursor: pointer;
+  -webkit-text-stroke: 2px rgb(24, 24, 24);
+}
+
+.song-title p,
+.song-artist p,
+.song-album p,
+.song-length p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 8px;
+  line-height: 14px;
+}
+
+.song-length,
+.song-length-header {
+	width: 60px;
+}
+
+.song-added,
+.song-added-header {
+	width: 80px;
+}
+
+.song-album,
+.song-album-header {
+	width: 210px;
+}
+
+.song-artist,
+.song-artist-header {
+	width: 180px;
+}
+
+.song-title,
+.song-title-header {
+	width: 250px;
+}
+
+.song-title-header p,
+.song-artist-header p,
+.song-album-header p,
+.song-length-header p {
+  font-family: 'proxima_nova_rgregular', sans-serif;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #ccc;
+  padding-left: 8px;
+}
+
+.song-length-header .fa-clock-o {
+  font-size: 17px;
+  color: #ccc;
+}
+
+.song-added-header {
+  width: 80px;
+  color: #ccc;
+}
+
+.song-header-container {
+  display: flex;
+  margin-left: 0px;
+  margin-bottom: 0px;
+  border-bottom: 1px solid #444;
 }
