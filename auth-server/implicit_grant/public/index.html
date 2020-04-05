@@ -131,13 +131,13 @@
 
           document.getElementById('login-button').addEventListener('click', function() {
 
-            var client_id = 'CLIENT_ID'; // Your client id
-            var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
+            var client_id = 'e9a2306dd16a41838ce9cd3eb8cd72c5';
+            var redirect_uri = 'http://localhost:8888/callback';
 
             var state = generateRandomString(16);
 
             localStorage.setItem(stateKey, state);
-            var scope = 'user-read-private user-read-email';
+            var scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read user-top-read user-read-recently-played user-follow-read';
 
             var url = 'https://accounts.spotify.com/authorize';
             url += '?response_type=token';

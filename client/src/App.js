@@ -20,12 +20,18 @@ class App extends Component {
       currentAlbum: null,
       currentAritst: null,
       currentPlaylist: null,
-      currentTop: "4 Weeks",
+      currentSearchTerm: "",
+      currentTop: "medium_term",
+      currentTopTime: "6 Months",
+      currentUser: null,
     };
 
+    this.getCurrentUser();
     this.handleHeaderChange = this.handleHeaderChange.bind(this);
     this.handlePlaylistChange = this.handlePlaylistChange.bind(this);
     this.handleArtistChange = this.handleArtistChange.bind(this);
+    this.handleTopChange = this.handleTopChange.bind(this);
+    this.handleSearchChange = this.handleSearchChange.bind(this);
   }
 
   getHashParams() {
@@ -38,6 +44,14 @@ class App extends Component {
        e = r.exec(q);
     }
     return hashParams;
+  }
+
+  getCurrentUser() {
+    spotifyApi.getMe().then(data => {
+      this.setState({
+        currentUser: data,
+      });
+    });
   }
 
   handleHeaderChange(title) {
@@ -53,7 +67,6 @@ class App extends Component {
       header: playlist.name,
       view: "playlist",
       currentPlaylist: playlist, 
-      
     });
   }
 
@@ -65,39 +78,94 @@ class App extends Component {
     });
   }
 
+  handleTopChange(top) {
+    const time = {
+     'short_term' : '4 Weeks',
+     'medium_term' : '6 Months',
+     'long_term' : 'All Time',
+    }
+
+    this.setState({
+      currentTop: top,
+      view: "top",
+      currentTopTime: time[top],
+    });
+  }
+
+  handleSearchChange(term) {
+    this.setState({
+      header: 'Search Results',
+      view: "results",
+      currentSearchTerm: term,
+    })
+  }
+
   render() {
     return (
       <div className="App">
-        
         <div className="app-container">
-          { !this.state.loggedIn && <a href='http://localhost:8888'> Login to Spotify </a> }
-          { this.state.loggedIn && (
+          { !this.state.loggedIn && <LoginButton/> }
+          { this.state.loggedIn && this.state.currentUser !== null && (
             <div>
               <div className="left-side-section">
                 <SideMenu header={this.state.header} onHeaderChange={this.handleHeaderChange}/>
-                <UserPlaylists header={this.header} onPlaylistChange={this.handlePlaylistChange}/>
+                <UserPlaylists user={this.state.currentUser} onPlaylistChange={this.handlePlaylistChange}/>
               </div>
               <div className="main-section">
-                <MainHeader appState={this.state}/>
+                <div className="header">
+                  <TrackSearch onSearchChange={this.handleSearchChange}/>
+                  <UserDetails currentUser={this.state.currentUser}/>
+                </div>
                 <div className="main-section-container">
+                  <MainHeader appState={this.state} onTopChange={this.handleTopChange}/>
                   <MainView appState={this.state}/>
                 </div>
               </div>
-            </div>)
-          }
+            </div> )}
         </div>
       </div>
     );
   }
 }
 
+class LoginButton extends Component {
+  generateRandomString(length) {
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    for (var i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  };
+
+  render() {
+    const client_id = 'e9a2306dd16a41838ce9cd3eb8cd72c5';
+    const redirect_uri = 'http://localhost:3000/';
+    const state = this.generateRandomString(16);
+    const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read user-top-read user-read-recently-played user-follow-read';
+
+    var url = 'https://accounts.spotify.com/authorize';
+    url += '?response_type=token';
+    url += '&client_id=' + encodeURIComponent(client_id);
+    url += '&scope=' + encodeURIComponent(scope);
+    url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+    url += '&state=' + encodeURIComponent(state);
+
+    return (
+      <a className="centered login-btn" href={url}>
+        Login to Spotify
+      </a>
+    )
+  }
+}
+
 class SideMenu extends Component {
   renderSideMenu() {
-    const menu = ["Top", "Recently Played", "Songs", "Albums", "Artists"];
+    const menu = ["Recently Played", "Songs", "Albums", "Artists", "Top"];
     return menu.map(item => {
       return (
-        <li key={item} className={this.props.header === item ? "active side-menu-item" : "side-menu-item"}
-          onClick={() => this.props.onHeaderChange(item)}>
+        <li key={item} className={this.props.header === item ? "active side-menu-item" : "side-menu-item"} onClick={() => this.props.onHeaderChange(item)}>
             {item}
         </li> 
       );
@@ -131,18 +199,14 @@ class UserPlaylists extends Component {
   }
 
   async renderPlaylists() {
-    const header =  this.props.header;
     const onPlaylistChange = (playlist) => this.props.onPlaylistChange(playlist);
     
-    return spotifyApi.getMe()
-      .then(function(user) {
-        return spotifyApi.getUserPlaylists(user.id, { limit: 50 });
-      })
+    return spotifyApi.getUserPlaylists(this.props.user.id, { limit: 50 })
       .then(function(playlists) {
         return playlists.items.map(playlist => {
           return (
-            <li key={playlist.id} className={header === playlist.name ? "active side-menu-item" : "side-menu-item"}
-              onClick={() => onPlaylistChange(playlist)}>
+
+            <li key={playlist.name} className="side-menu-item" onClick={() => onPlaylistChange(playlist)}>
               {playlist.name}
             </li>
           );
@@ -163,13 +227,53 @@ class UserPlaylists extends Component {
   }
 }
 
+class TrackSearch extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      searchTerm: '',
+    };
+
+    this.updateSearchTerm = this.updateSearchTerm.bind(this);
+  }
+
+  updateSearchTerm(term) {
+    this.setState({
+      searchTerm: term.target.value,
+    })
+  }
+
+  render() {
+    return (
+      <div className="track-search-container">
+        <form onSubmit={() => {this.props.onSearchChange(this.state.searchTerm)}}>
+          <input onChange={this.updateSearchTerm} type="text" placeholder="Search"/>
+        </form>
+      </div>
+    )
+  }
+}
+
+class UserDetails extends Component {
+  render() {
+    return (
+      <div className="user-details-container">
+        <img className="user-image" src={this.props.currentUser.images[0].url} alt={this.props.currentUser.display_name}/>
+        <p className="user-name">{this.props.currentUser.display_name}</p>
+      </div>
+    )
+  }
+}
+
 class MainHeader extends Component {
   render() {
     const header = this.props.appState.header;
     const view = this.props.appState.view;
-    const currentAlbum = this.props.appState.currentAlbum;
     const currentArtist = this.props.appState.currentAritst;
     const currentPlaylist = this.props.appState.currentPlaylist;
+    const currentTop = this.props.appState.currentTop;
+    const currentTopTime = this.props.appState.currentTopTime;
 
     return (
       <div className='section-title'>
@@ -205,11 +309,13 @@ class MainHeader extends Component {
           header === 'Songs'||
           header === 'Recently Played' ||
           header === 'Albums' ||
-          header === 'Artists') && (
-            <div>
-              <h3 className='header-title'>{header}</h3>
-            </div>
-          )}
+          header === 'Artists' ||
+          header === 'Search Results' ) && (
+          <div style={{display: 'flex'}}>
+            <h3 className='header-title'>{header}</h3>
+            {header === 'Top' && <TopSelect currentTop={currentTop} currentTopTime={currentTopTime} onTopChange={this.props.onTopChange}/>}
+          </div>
+        )}
       </div>
     );
   }
@@ -219,11 +325,13 @@ class MainView extends Component {
   render() {
     return (
       <React.Fragment>
-        {this.props.appState.header === "Top" && <TopList/>}
-        {this.props.appState.header === "Artists" && <ArtistList/>}
+        {this.props.appState.header === "Top" && <TopList appState={this.props.appState}/>}
+        {this.props.appState.header === "Artists" && <ArtistList appState={this.props.appState}/>}
+        {this.props.appState.header === "Albums" && <AlbumList/>}
         {(
           this.props.appState.header === "Recently Played" ||
           this.props.appState.header === "Songs" ||
+          this.props.appState.header === "Search Results" ||
           this.props.appState.view === "playlist" )
           && <SongList appState={this.props.appState}/>}
       </React.Fragment>
@@ -231,52 +339,66 @@ class MainView extends Component {
   }
 }
 
+class TopSelect extends Component {
+  render() {
+    const currentTop = this.props.currentTop;
+    return (
+      <div>
+        <select onChange={(value) => this.props.onTopChange(value.target.value)}>
+          <option hidden >{this.props.currentTopTime}</option>
+          {currentTop !== 'short_term' && <option value='short_term'>4 Weeks</option>}
+          {currentTop !== 'medium_term' && <option value='medium_term'>6 Months</option>}
+          {currentTop !== 'long_term' && <option value='long_term'>All Time</option>}
+        </select>
+      </div>
+    )
+  }
+}
+
 class TopList extends Component {
   render() {
-    return <div></div>
+    return (
+      <React.Fragment>
+        <ArtistList appState={this.props.appState}/>
+        <SongList appState={this.props.appState}/>
+      </React.Fragment>
+    )
   }
 }
 
 class AlbumList extends Component {
-  render() {
-    return <div></div>
-  }
-}
-
-class ArtistList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      userArtists: []
+      userAlbums: [],
     }
   }
 
   componentDidMount() {
-    this.renderArtists().then(data =>
+    this.renderAlbums().then(data =>
       this.setState({
-        userArtists: data
+        userAlbums: data,
       })
     );
   }
 
-  async renderArtists() {
-    return spotifyApi.getFollowedArtists({ limit: 50 })
+  async renderAlbums() {
+    return spotifyApi.getMySavedAlbums({ limit: 50 })
       .then(function(data) {
-        return data.artists.items.map(artist => {
-          const getArtist = () => {
-            //noop
+        return data.items.map(item => {
+          const getAlbum = () => {
+            // noop
           }
+
           return (
-            <li key={artist.id} className="artist-item"
-              onClick={getArtist}>
-              <a>
-                <div claasName="artist-image">
-                  <img src={artist.images[0] ? artist.images[0].url : ""}/>
-                </div>
-                <div className="artist-details">
-                  <p>{artist.name}</p>
-                </div>
-              </a>
+            <li key={item.album.id} className="album-item" onClick={getAlbum}>
+              <div className="album-image">
+                <img src={item.album.images[0].url} alt={item.album.name}/>
+              </div>
+              <div className="album-details">
+                <p className="album-name">{item.album.name}</p>
+                <p className="artist-name">{item.album.artists[0].name}</p>
+              </div>
             </li>
           );
         });
@@ -286,8 +408,106 @@ class ArtistList extends Component {
       });
   }
 
+
   render() {
-    return <div></div>;
+    return <ul className="album-view-container">{this.state.userAlbums}</ul>;
+  }
+}
+
+class ArtistList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      artists: [],
+      visible: true,
+    }
+  }
+
+  componentDidMount() {
+    this.renderArtists().then(data =>
+      this.setState({
+        artists: data,
+      })
+    );
+  }
+
+  componentDidUpdate() {
+    if (this.state.visible && 
+      ((this.props.appState.header === 'Top' && this.state.currentTop !== this.props.appState.currentTop) ||
+        this.props.appState.header !== this.state.header))
+      this.renderArtists().then(data => {
+        this.setState({
+          header: this.props.appState.header,
+          currentTop: this.props.appState.currentTop,
+          artists: data,
+        })
+      });
+  }
+
+  componentWillUnmount() {
+    this.setState({
+      visible: false,
+    })
+  }
+
+  async renderArtists() {
+    const artistList = this.artistList;
+
+    switch (this.props.appState.header) {
+      case ("Top"):
+        return spotifyApi.getMyTopArtists({ limit: 50, time_range: this.props.appState.currentTop })
+          .then(function(data) {
+            return artistList(data.items);
+          })
+          .catch(function(err) {
+            console.error(err);
+            return [];
+          });
+      case ("Artists"):
+        return spotifyApi.getFollowedArtists({ limit: 50})
+          .then(function(data) {
+            return artistList(data.artists.items)
+          })
+          .catch(function(err) {
+            console.error(err);
+            return [];
+          });
+      default:
+        return spotifyApi.getArtistRelatedArtists(this.props.appState.currentAritst.id, { limit: 5 })
+          .then(function(data) {
+            return artistList(data.artists)
+          })
+          .catch(function(err) {
+            console.error(err);
+            return [];
+          });
+    }
+  }
+
+  artistList(artists) {
+    return artists.map(artist => {
+      const getArtist = () => {
+        //noop
+      }
+      return (
+        <li key={artist.id} className="artist-item" onClick={getArtist}>
+            <div className="artist-image">
+              <img src={artist.images[0] ? artist.images[0].url : ""} alt={artist.name}/>
+            </div>
+            <div className="artist-details">
+              <p>{artist.name}</p>
+            </div>
+        </li>
+      );
+    });
+  }
+
+  render() {
+    return (
+      <ul className="artist-view-container">
+        {this.state.artists}
+      </ul>
+    );
   }
 }
 
@@ -304,6 +524,8 @@ class SongList extends Component {
     this.renderSongs().then(data => {
       this.setState({
         header: this.props.appState.header,
+        currentTop: '',
+        currentSearchTerm: '',
         songs: data,
         visible: true,
       })
@@ -311,10 +533,15 @@ class SongList extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.visible && this.props.appState.header != this.state.header)
+    if (this.state.visible && 
+        ((this.props.appState.header === 'Top' && this.state.currentTop !== this.props.appState.currentTop) ||
+         (this.props.appState.header === 'Search Results' && this.state.currentSearchTerm !== this.props.appState.currentSearchTerm) ||
+          this.props.appState.header !== this.state.header))
       this.renderSongs().then(data => {
         this.setState({
           header: this.props.appState.header,
+          currentTop: this.props.appState.currentTop,
+          currentSearchTerm: this.props.appState.currentSearchTerm,
           songs: data,
         })
       });
@@ -327,36 +554,63 @@ class SongList extends Component {
   }
 
   async renderSongs() {
+    const currentUser = this.props.appState.currentUser;
     const currentPlaylist = this.props.appState.currentPlaylist;
+    const currentSearchTerm = this.props.appState.currentSearchTerm;
     const songList = (items) => this.songList(items);
 
     switch (this.props.appState.header) {
+      case ("Top"):
+        return spotifyApi.getMyTopTracks({ limit: 50, time_range: this.props.appState.currentTop })
+          .then(function(data) {
+            return songList(data.items);
+          })
+          .catch(function(err) {
+            console.error(err);
+            return [];
+          })
       case ("Recently Played"):
         return spotifyApi.getMyRecentlyPlayedTracks({ limit: 50 })
           .then(function(data) {
             return songList(data.items);
+          })
+          .catch(function(err) {
+            console.error(err);
+            return [];
           })
       case ("Songs"):
         return spotifyApi.getMySavedTracks({ limit: 50 })
           .then(function (data) {
             return songList(data.items);
           })
+          .catch(function(err) {
+            console.error(err);
+            return [];
+          })
+      case ("Search Results"):
+        return spotifyApi.searchTracks(currentSearchTerm, { limit: 25 })
+          .then(function(data) {
+            return songList(data.tracks.items);
+          })
       default: {
         if (this.props.appState.view === "playlist") {
-          return spotifyApi.getMe()
-            .then(function(user) {
-              return spotifyApi.getPlaylistTracks(user.id, currentPlaylist.id);
-            })
+          return spotifyApi.getPlaylistTracks(currentUser.id, currentPlaylist.id)
             .then(function(data) {
               return songList(data.items);
             })
+            .catch(function(err) {
+              console.error(err);
+              return [];
+            })
           }
-          
       }
     }
   }
 
   songList(items) {
+    const getTrack = (this.props.appState.header === "Top" || this.props.appState.header === "Search Results") ? 
+      (song) => { return song; } : (song) => { return song.track; };
+
     return items.map((song, i) => {
       const msToMinutesAndSeconds = (ms) => {
         const minutes = Math.floor(ms / 60000);
@@ -367,16 +621,16 @@ class SongList extends Component {
       return (
       <li key={i} className="user-song-item">
         <div className="song-title">
-          <p>{song.track.name}</p>
+          <p>{getTrack(song).name}</p>
         </div>
         <div className="song-artist">
-          <p>{song.track.artists[0].name}</p>
+          <p>{getTrack(song).artists[0].name}</p>
         </div>
         <div className="song-album">
-          <p>{song.track.album.name}</p>
+          <p>{getTrack(song).album.name}</p>
         </div>
         <div className="song-length">
-          <p>{msToMinutesAndSeconds(song.track.duration_ms)}</p>
+          <p>{msToMinutesAndSeconds(getTrack(song).duration_ms)}</p>
         </div>
       </li>
       );
