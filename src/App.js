@@ -141,7 +141,7 @@ class LoginButton extends Component {
 
   render() {
     const client_id = 'e9a2306dd16a41838ce9cd3eb8cd72c5';
-    const redirect_uri = 'http://localhost:3000/';
+    const redirect_uri = 'https://kevinamendoza.github.io/spotimy/';
     const state = this.generateRandomString(16);
     const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read user-top-read user-read-recently-played user-follow-read';
 
@@ -611,6 +611,17 @@ class SongList extends Component {
     const getTrack = (this.props.appState.header === "Top" || this.props.appState.header === "Search Results") ? 
       (song) => { return song; } : (song) => { return song.track; };
 
+    const displayTrackFeatures = (song) => { 
+      spotifyApi.getAudioFeaturesForTrack(getTrack(song).id)
+        .then(function(data) {
+          console.log(getTrack(song).name + " by " + getTrack(song).artists[0].name);
+          console.table(data);
+        })
+        .catch(function(err) {
+          console.error(err);
+        });
+      };
+
     return items.map((song, i) => {
       const msToMinutesAndSeconds = (ms) => {
         const minutes = Math.floor(ms / 60000);
@@ -619,7 +630,7 @@ class SongList extends Component {
       }
 
       return (
-      <li key={i} className="user-song-item">
+      <li key={i} className="user-song-item" onClick={ () => displayTrackFeatures(song) }>
         <div className="song-title">
           <p>{getTrack(song).name}</p>
         </div>
