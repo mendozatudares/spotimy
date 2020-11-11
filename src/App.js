@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
 import './App.css';
 
@@ -205,7 +205,6 @@ class UserPlaylists extends Component {
       .then(function(playlists) {
         return playlists.items.map(playlist => {
           return (
-
             <li key={playlist.name} className="side-menu-item" onClick={() => onPlaylistChange(playlist)}>
               {playlist.name}
             </li>
@@ -292,12 +291,12 @@ class MainHeader extends Component {
           </div>
         )}
 
-        {view === "Artist" && currentArtist && (
+        {view === "artist" && currentArtist && (
           <div>
             <div className='current-artist-header-container'>
               <img className='current-artist-image' src={currentArtist.images[0].url} alt={currentArtist.name}/>
               <div className='current-artist-info'>
-                <p>Artist from your library</p>
+                <p>Artist</p>
                 <h3>{currentArtist.name}</h3>
               </div>
             </div>
@@ -419,8 +418,8 @@ class ArtistList extends Component {
     super(props);
     this.state = {
       artists: [],
-      visible: true,
     }
+    this.visible = false
   }
 
   componentDidMount() {
@@ -429,10 +428,11 @@ class ArtistList extends Component {
         artists: data,
       })
     );
+    this.visible = true
   }
 
   componentDidUpdate() {
-    if (this.state.visible && 
+    if (this.visible && 
       ((this.props.appState.header === 'Top' && this.state.currentTop !== this.props.appState.currentTop) ||
         this.props.appState.header !== this.state.header))
       this.renderArtists().then(data => {
@@ -445,9 +445,7 @@ class ArtistList extends Component {
   }
 
   componentWillUnmount() {
-    this.setState({
-      visible: false,
-    })
+    this.visible = false
   }
 
   async renderArtists() {
@@ -516,8 +514,8 @@ class SongList extends Component {
     super(props);
     this.state = {
       songs: [],
-      visible: true,
     }
+    this.visible = false
   }
 
   componentDidMount() {
@@ -530,10 +528,11 @@ class SongList extends Component {
         visible: true,
       })
     });
+    this.visible = true
   }
 
   componentDidUpdate() {
-    if (this.state.visible && 
+    if (this.visible && 
         ((this.props.appState.header === 'Top' && this.state.currentTop !== this.props.appState.currentTop) ||
          (this.props.appState.header === 'Search Results' && this.state.currentSearchTerm !== this.props.appState.currentSearchTerm) ||
           this.props.appState.header !== this.state.header))
@@ -548,9 +547,7 @@ class SongList extends Component {
   }
 
   componentWillUnmount() {
-    this.setState({
-      visible: false,
-    })
+    this.visible = false
   }
 
   async renderSongs() {
@@ -611,17 +608,6 @@ class SongList extends Component {
     const getTrack = (this.props.appState.header === "Top" || this.props.appState.header === "Search Results") ? 
       (song) => { return song; } : (song) => { return song.track; };
 
-    const displayTrackFeatures = (song) => { 
-      spotifyApi.getAudioFeaturesForTrack(getTrack(song).id)
-        .then(function(data) {
-          console.log(getTrack(song).name + " by " + getTrack(song).artists[0].name);
-          console.table(data);
-        })
-        .catch(function(err) {
-          console.error(err);
-        });
-      };
-
     return items.map((song, i) => {
       const msToMinutesAndSeconds = (ms) => {
         const minutes = Math.floor(ms / 60000);
@@ -630,7 +616,7 @@ class SongList extends Component {
       }
 
       return (
-      <li key={i} className="user-song-item" onClick={ () => displayTrackFeatures(song) }>
+      <li key={i} className="user-song-item">
         <div className="song-title">
           <p>{getTrack(song).name}</p>
         </div>
