@@ -141,7 +141,7 @@ class LoginButton extends Component {
 
   render() {
     const client_id = 'e9a2306dd16a41838ce9cd3eb8cd72c5';
-    const redirect_uri = 'https://kevinamendoza.github.io/spotimy/';
+    const redirect_uri = 'https://mendozatudares.github.io/spotimy/';
     const state = this.generateRandomString(16);
     const scope = 'user-read-private playlist-read-private playlist-read-collaborative user-library-read user-top-read user-read-recently-played user-follow-read';
 
